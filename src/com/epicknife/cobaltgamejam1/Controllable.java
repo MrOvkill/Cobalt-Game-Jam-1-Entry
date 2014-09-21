@@ -2,6 +2,12 @@ package com.epicknife.cobaltgamejam1;
 
 import org.lwjgl.input.Keyboard;
 
+/*
+    * Author: Samuel "MrOverkill" Meyers
+    * License: Public Domain
+    * Version: 0.0.1
+*/
+
 public class Controllable
 {
     public Point2i pos;
@@ -34,19 +40,31 @@ public class Controllable
             // Default to WASD controls.
             if(Keyboard.isKeyDown(Keyboard.KEY_W))
             {
-                this.pos.y += speed;
+                if(EvilSheepGame.navmesh.legalMove(new Point2i(-pos.x, -pos.y), new Point2i(-pos.x, -(pos.y + speed))))
+                {
+                    this.pos.y += speed;
+                }
             }
             if(Keyboard.isKeyDown(Keyboard.KEY_A))
             {
-                this.pos.x += speed;
+                if(EvilSheepGame.navmesh.legalMove(new Point2i(-pos.x, -pos.y), new Point2i(-(pos.x + speed),- pos.y)))
+                {
+                    this.pos.x += speed;
+                }
             }
             if(Keyboard.isKeyDown(Keyboard.KEY_S))
             {
-                this.pos.y -= speed;
+                if(EvilSheepGame.navmesh.legalMove(new Point2i(-pos.x, -pos.y), new Point2i(-pos.x, -(pos.y - speed))))
+                {
+                    this.pos.y -= speed;
+                }
             }
             if(Keyboard.isKeyDown(Keyboard.KEY_D))
             {
-                this.pos.x -= speed;
+                if(EvilSheepGame.navmesh.legalMove(new Point2i(-pos.x, -pos.y), new Point2i(-(pos.x - speed), -pos.y)))
+                {
+                    this.pos.x -= speed;
+                }
             }
             
             ds = dn;

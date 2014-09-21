@@ -15,6 +15,13 @@ import org.newdawn.slick.SlickException;
 import org.python.core.Py;
 import org.python.util.PythonInterpreter;
 
+/*
+    * Author: Samuel "MrOverkill" Meyers
+    * License: Public Domain
+    * Version: 0.0.1
+    * Last Modified: 0.0.1 - Samuel "MrOverkill" Meyers
+*/
+
 public class EvilSheepGame extends BasicGame
 {
     
@@ -54,9 +61,26 @@ public class EvilSheepGame extends BasicGame
     public static void addTile(Tile tile)
     {
         world.add(tile);
-        if(!navmesh.addRegion(tile.getCollisionSquare()))
+        if(tile.walkable)
         {
-            System.out.println("Failed to add collider for: " + tile.getCollisionSquare().toString());
+            if(!navmesh.addRegion(tile.getCollisionSquare()))
+            {
+                System.out.println("Failed to add collider for: " + tile.getCollisionSquare().toString());
+            }
+        }
+    }
+    
+    public static void removeTile(Tile tile)
+    {
+        for(int i = 0; i < world.size(); i++)
+        {
+            if(world.get(i).pos.pointEquals(tile.pos))
+            {
+                System.out.println("Removing x" + world.get(i).pos.x + " y" + world.get(i).pos.y);
+                world.remove(i);
+                navmesh.removeRegion(tile.getCollisionSquare());
+                i--;
+            }
         }
     }
     

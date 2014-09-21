@@ -2,9 +2,12 @@ package com.epicknife.cobaltgamejam1;
 
 import java.util.ArrayList;
 
-/**
- * This class handles navigation meshes.
- */
+/*
+    * Author: Samuel "MrOverkill" Meyers
+    * License: Public Domain
+    * Version: 0.0.1
+    * Last Modified: 0.0.1 - Samuel "MrOverkill" Meyers
+*/
 
 public class NavMesh
 {
@@ -13,6 +16,18 @@ public class NavMesh
     public NavMesh()
     {
         this.regions = new ArrayList<>();
+    }
+    
+    public void removeRegion(Square s)
+    {
+        for (int i = 0; i < regions.size(); i++)
+        {
+            if(regions.get(i).squareEquals(s))
+            {
+                regions.remove(i);
+                i--;
+            }
+        }
     }
     
     /**

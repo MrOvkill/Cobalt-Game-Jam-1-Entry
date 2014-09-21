@@ -1,5 +1,11 @@
 package com.epicknife.cobaltgamejam1;
 
+/*
+    * Author: Samuel "MrOverkill" Meyers
+    * License: Public Domain
+    * Version: 0.0.1
+*/
+
 public class Point2i
 {
     public int x, y;
@@ -43,13 +49,18 @@ public class Point2i
     
     public static int distance(Point2i a, Point2i b)
     {
-        int ad = a.x + b.x;
-        int bd = a.y + b.y;
-        return Math.abs(ad+bd);
+        int ad = Math.abs(a.x - b.x);
+        int bd = Math.abs(a.y - b.y);
+        return ad+bd;
     }
     
     public boolean inRange(int range, Point2i dest)
     {
         return (Point2i.distance(this, dest) <= range);
+    }
+    
+    public boolean inSquare(Square s)
+    {
+        return (this.x <= s.x1 && this.x >= s.x2 && this.y <= s.y1 && this.y >= s.y2);
     }
 }

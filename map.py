@@ -2,6 +2,14 @@
 # Author: Samuel "MrOverkill" Meyers
 # License: Public domain
 
+"""
+
+ * Author: Samuel "MrOverkil" Meyers
+ * License: Public Domain
+ * Version: 0.0.1 - Release
+
+"""
+
 # Default tiles are 32 pixels wide and high.
 
 import com.epicknife.cobaltgamejam1.EvilSheepGame as ESG
@@ -20,11 +28,44 @@ class TileGrass(TileBase):
     def onDraw(self, offset):
         ESG.getImage("grass").draw(offset.x + self.pos.x, offset.y + self.pos.y)
 
+class TileGrassFence(TileBase):
+    def __init__(self, position, mode):
+        TileBase.__init__(self, False, False, position)
+        self.mode = mode
+    def onDraw(self, offset):
+        ESG.getImage("grass").draw(offset.x + self.pos.x, offset.y + self.pos.y)
+        if self.mode == 0:
+            ESG.getImage("verticalfence").draw(offset.x + self.pos.x, offset.y + self.pos.y)
+        if self.mode == 1:
+            ESG.getImage("horizontalfence").draw(offset.x + self.pos.x, offset.y + self.pos.y)
+        if self.mode == 2:
+            ESG.getImage("verticalfence").draw(offset.x + self.pos.x, offset.y + self.pos.y)
+            ESG.getImage("horizontalfence").draw(offset.x + self.pos.x, offset.y + self.pos.y)
+
 class TileVoid(TileBase):
     def __init__(self, position):
         TileBase.__init__(self, False, False, position)
     def onDraw(self, offset):
         ESG.getImage("void").draw(offset.x + self.pos.x, offset.y + self.pos.y)
+
+class EntityCorpse(AIBase):
+    def __init__(self, pos):
+        AIBase.__init__(self, "corpse")
+        self.pos = pos
+    def onDraw(self, offset):
+        ESG.getImage("corpse").draw(offset.x + (self.pos.x-8), offset.y + (self.pos.y-8))
+
+class EntityShit(AIBase):
+    def __init__(self, pos):
+        AIBase.__init__(self, "shit")
+        self.pos = pos
+    def onThink(self, ignoreme):
+        ppos = Point(-ESG.player.pos.x, -ESG.player.pos.y)
+        if ppos.inRange(16, self.pos):
+            ESG.player.shit = ESG.player.shit + 1
+            self.destroy = True
+    def onDraw(self, offset):
+        ESG.getImage("shit").draw(offset.x + (self.pos.x-8), offset.y + (self.pos.y-8))
 
 class AIHappySheep(AIBase):
     def __init__(self, pos):
@@ -43,6 +84,10 @@ class AIHappySheep(AIBase):
         self.ct = System.currentTimeMillis()
         
         if self.pos.pointEquals(self.dest):
+            
+            marg = ESG.randInt(0, 43)
+            if marg == 42:
+                ESG.entities.add(EntityShit(self.pos))
             
             self.positions = []
             self.directions = []
@@ -86,7 +131,7 @@ class AIHappySheep(AIBase):
         ESG.getImage("happysheep").draw(offset.x + (self.pos.x-8), offset.y + (self.pos.y-32))
 
 class AIEvilSheep(AIBase):
-    def __init__(self, pos):
+    def __init__(self, pos, poses):
         AIBase.__init__(self, "evilsheep")
         self.pos = pos
         self.dest = pos
@@ -94,8 +139,8 @@ class AIEvilSheep(AIBase):
         self.lt = System.currentTimeMillis()
         self.ct = System.currentTimeMillis()
         self.speed = 1
-        self.positions = []
-        self.directions = []
+        self.positions = poses
+        self.cdest = 0
         self.lastHit = System.currentTimeMillis()
     def onTerrainChange(self):
         self.navmesh = ESG.navmesh
@@ -110,74 +155,89 @@ class AIEvilSheep(AIBase):
                     if ent.pos.inRange(2, self.pos):
                         self.lastHit = System.currentTimeMillis()
                         ESG.entities.get(i).destroy = True
-                        ESG.entities.add(AIEvilSheep(ent.pos))
+                        ESG.entities.add(AIEvilSheep(ent.pos, [Point(0, 0)]))
         
         ppos = Point(-ESG.player.pos.x, -ESG.player.pos.y)
         
-        aaa = Math.abs(ppos.x - self.pos.x)
-        aab = Math.abs(ppos.y - self.pos.y)
-        
-        if ppos.inRange(50, self.pos):
+        if ppos.inRange(32, Point(self.pos.x+16, self.pos.y+16)):
             if (System.currentTimeMillis() - self.lastHit) >= 1000:
                 self.lastHit = System.currentTimeMillis()
                 ESG.player.onDamage(1)
         
         if self.pos.pointEquals(self.dest):
             
-            self.positions = []
-            self.directions = []
-            
-            for i in range(0, 4):
-                if i == 0:
-                    despos = Point(self.pos.x+32, self.pos.y)
-                    if ESG.navmesh.legalMove(self.pos, despos):
-                        self.positions.append(despos)
-                        self.directions.append(Point(1, 0))
-                if i == 1:
-                    despos = Point(self.pos.x-32, self.pos.y)
-                    if ESG.navmesh.legalMove(self.pos, despos):
-                        self.positions.append(despos)
-                        self.directions.append(Point(-1, 0))
-                if i == 2:
-                    despos = Point(self.pos.x, self.pos.y+32)
-                    if ESG.navmesh.legalMove(self.pos, despos):
-                        self.positions.append(despos)
-                        self.directions.append(Point(0, 1))
-                if i == 3:
-                    despos = Point(self.pos.x, self.pos.y-32)
-                    if ESG.navmesh.legalMove(self.pos, despos):
-                        self.positions.append(despos)
-                        self.directions.append(Point(0, -1))
-            
-            if len(self.directions) >= 1:
-                chosen = ESG.randInt(0, (len(self.directions)-1))
-                self.dest = self.positions[chosen]
-                self.direction = self.directions[chosen]
+            if len(self.positions)-1 >= self.cdest:
+                self.dest = self.positions[self.cdest]
+                self.direction = Point(0, 0)
+                if self.dest.x > self.pos.x:
+                    self.direction = Point(1, self.direction.y)
+                elif self.dest.x < self.pos.x:
+                    self.direction = Point(-1, self.direction.y)
+                else:
+                    self.direction = Point(0, self.direction.y)
+                if self.dest.y > self.pos.y:
+                    self.direction = Point(self.direction.x, 1)
+                elif self.dest.y < self.pos.y:
+                    self.direction = Point(self.direction.x, -1)
+                else:
+                    self.direction = Point(self.direction.x, 0)
+                self.cdest = self.cdest + 1
             else:
-                self.dest = self.pos
+                self.positions = []
+                self.directions = []
+                
+                self.cdest = 0
+                
+                for i in range(0, 4):
+                    if i == 0:
+                        despos = Point(self.pos.x+32, self.pos.y)
+                        if ESG.navmesh.legalMove(self.pos, despos):
+                            self.positions.append(despos)
+                            self.directions.append(Point(1, 0))
+                    if i == 1:
+                        despos = Point(self.pos.x-32, self.pos.y)
+                        if ESG.navmesh.legalMove(self.pos, despos):
+                            self.positions.append(despos)
+                            self.directions.append(Point(-1, 0))
+                    if i == 2:
+                        despos = Point(self.pos.x, self.pos.y+32)
+                        if ESG.navmesh.legalMove(self.pos, despos):
+                            self.positions.append(despos)
+                            self.directions.append(Point(0, 1))
+                    if i == 3:
+                        despos = Point(self.pos.x, self.pos.y-32)
+                        if ESG.navmesh.legalMove(self.pos, despos):
+                            self.positions.append(despos)
+                            self.directions.append(Point(0, -1))
+                
+                if len(self.directions) >= 1:
+                    chosen = ESG.randInt(0, (len(self.directions)-1))
+                    self.dest = self.positions[chosen]
+                    self.direction = self.directions[chosen]
+                else:
+                    self.dest = self.pos
         
         if self.ct - self.lt >= 25:
+            self.direction = Point(0, 0)
+            if self.dest.x > self.pos.x:
+                self.direction = Point(1, self.direction.y)
+            elif self.dest.x < self.pos.x:
+                self.direction = Point(-1, self.direction.y)
+            else:
+                self.direction = Point(0, self.direction.y)
+            if self.dest.y > self.pos.y:
+                self.direction = Point(self.direction.x, 1)
+            elif self.dest.y < self.pos.y:
+                self.direction = Point(self.direction.x, -1)
+            else:
+                self.direction = Point(self.direction.x, 0)
             newpos = Point(self.pos.x + (self.direction.x * self.speed), self.pos.y + (self.direction.y * self.speed))
             self.lt = self.ct
             if ESG.navmesh.legalMove(self.pos, newpos):
                 self.pos = newpos
         
     def onDraw(self, offset):
-        ppos = Point(-ESG.player.pos.x, -ESG.player.pos.y)
-        
-        ESG.getImage("debug_white").draw(-ESG.player.pos.x, -ESG.player.pos.y)
         ESG.getImage("evilsheep").draw(offset.x + (self.pos.x-8), offset.y + (self.pos.y-32))
-
-class EntityShit(AIBase):
-    def __init__(self, pos):
-        AIBase.__init__(self, "shit")
-        self.pos = pos
-    def onThink(self, ignoreme):
-        if ESG.player.pos.inRange(2, self.pos):
-            ESG.player.shit = ESG.player.shit + 1
-            self.destroy = True
-    def onDraw(self, offset):
-        ESG.getImage("shit").draw(offset.x + (self.pos.x-8), offset.y + (self.pos.y-8))
 
 class AIThrownShit(AIBase):
     def __init__(self, pos, speed, direction):
@@ -190,6 +250,19 @@ class AIThrownShit(AIBase):
     def onTerrainChange(self):
         self.navmesh = ESG.navmesh
     def onThink(self, ignoreme):
+        for i in range(0, ESG.entities.size()):
+            ent = ESG.entities.get(i)
+            if ent.name == "happysheep":
+                if ent.pos.inRange(42, self.pos):
+                    ESG.entities.get(i).destroy = True
+                    ESG.entities.add(AIEvilSheep(ent.pos, []))
+                    self.destroy = True
+            if ent.name == "evilsheep":
+                if ent.pos.inRange(42, self.pos):
+                    ESG.entities.get(i).destroy = True
+                    ESG.entities.add(EntityCorpse(ent.pos))
+                    self.destroy = True
+        
         oldpos = Point(self.pos.x, self.pos.y)
         self.pos = Point.add(self.pos, self.direction)
         if not ESG.navmesh.legalMove(oldpos, self.pos):
@@ -199,6 +272,8 @@ class AIThrownShit(AIBase):
 
 class Player(BaseController):
     # I WAS MAKING IT RESET THE TIMER AT THE DRAW FUNCTION INSTEAD OF THE CONSTRUCTOR!!!
+    # Edge X: -112
+    # Edge Y: -212
     def __init__(self, pos, speed):
         BaseController.__init__(self, pos, speed)
         self.a = True
@@ -210,6 +285,8 @@ class Player(BaseController):
         ESG.getImage("player").draw((400-32), (300-32))
     def onUpdate(self):
         BaseController.onUpdate(self)
+        if self.health <= 0:
+            Systenm.exit(0)
         if Keyboard.isKeyDown(Keyboard.KEY_UP) and self.a and self.shit > 0:
             ESG.addEntity(AIThrownShit(Point(-(self.pos.x+4), -(self.pos.y+40)), 1, Point(0, -1)))
             self.a = False
@@ -246,23 +323,155 @@ ESG.setImage("bigshit", "resources/images/bigshit.png")
 ESG.setImage("evilsheep", "resources/images/angrysheep.png")
 ESG.setImage("corpse", "resources/images/corpse.png")
 ESG.setImage("debug_white", "resources/images/debug_white.png")
+ESG.setImage("verticalfence", "resources/images/verticalfence.png")
+ESG.setImage("horizontalfence", "resources/images/horizontalfence.png")
 
 ESG.setPlayer(Player(Point(-64, -64), 1))
 
-ESG.addEntity(AIHappySheep(Point(232, 232)))
-ESG.addEntity(AIHappySheep(Point(264, 232)))
-ESG.addEntity(AIHappySheep(Point(264, 264)))
-ESG.addEntity(AIEvilSheep(Point(232, 264)))
+ESG.addEntity(AIHappySheep(Point(-128, -128)))
+ESG.addEntity(AIHappySheep(Point(-256, -128)))
+ESG.addEntity(AIHappySheep(Point(-128, -256)))
+ESG.addEntity(AIHappySheep(Point(-256, -256)))
 
-cx = 0
-cy = 0
+ESG.addEntity(AIEvilSheep(Point(-95, 282), [
+Point(267, 229),
+Point(138, -34),
+Point(396, -418),
+Point(-147, -405),
+Point(-237, -179),
+]))
 
-for x in range(0, 25):
-    for y in range(0, 25):
+ESG.addEntity(AIEvilSheep(Point(-200, 282), [
+Point(267, 229),
+Point(138, -34),
+Point(396, -418),
+Point(-147, -405),
+Point(-237, -179),
+]))
+
+ESG.addEntity(AIEvilSheep(Point(-55, 282), [
+Point(267, 229),
+Point(138, -34),
+Point(396, -418),
+Point(-147, -405),
+Point(-237, -179),
+]))
+
+ESG.addEntity(AIEvilSheep(Point(100, 382), [
+Point(267, 229),
+Point(138, -34),
+Point(396, -418),
+Point(-147, -405),
+Point(-237, -179),
+]))
+
+ESG.addEntity(AIEvilSheep(Point(10, 382), [
+Point(367, 229),
+Point(238, -80),
+Point(396, -418),
+Point(-147, -405),
+Point(-237, -179),
+]))
+
+"""
+ESG.addEntity(AIEvilSheep(Point(232, 264), [
+Point(200, 264),
+
+Point(200, 232),
+
+Point(200, 200),
+
+Point(168, 200),
+
+Point(168, 168),
+
+Point(168, 136),
+
+Point(168, 104),
+
+Point(168, 72),
+
+Point(168, 40),
+
+Point(168, 8),
+
+Point(168, -24),
+
+Point(168, -56),
+
+Point(168, -88),
+
+Point(168, -120),
+
+Point(168, -152),
+
+Point(168, -184),
+
+Point(168, -216),
+
+Point(168, -248),
+
+Point(168, -280),
+
+Point(168, -312),
+
+Point(168, -344),
+
+Point(168, -376),
+
+Point(168, -408),
+
+Point(136, -408),
+
+Point(104, -408),
+
+Point(0, -408),
+
+Point(0, -376),
+
+Point(-200, -300),
+]))
+
+"""
+
+cx = (-16)*32
+cy = (-16)*32
+
+for x in range(-16, 16):
+    for y in range(-16, 16):
         ESG.addTile(TileGrass(Point(cx, cy)))
         cy = cy + 32
-    cy = 0
+    cy = -16*32
     cx = cx + 32
+
+cx = (-14)*32
+cy = (-14)*32
+
+for x in range(0, 15):
+    ESG.removeTile(TileGrass(Point(cx, cy)))
+    ESG.addTile(TileGrassFence(Point(cx, cy), 2))
+    cx = cx + 32
+
+cx = (-14)*32
+
+for y in range(0, 15):
+    ESG.removeTile(TileGrass(Point(cx, cy)))
+    ESG.addTile(TileGrassFence(Point(cx, cy), 2))
+    cy = cy + 32
+
+for x in range(0, 15):
+    ESG.removeTile(TileGrass(Point(cx, cy)))
+    ESG.addTile(TileGrassFence(Point(cx, cy), 2))
+    cx = cx + 32
+
+for y in range(0, 16):
+    ESG.removeTile(TileGrass(Point(cx, cy)))
+    ESG.addTile(TileGrassFence(Point(cx, cy), 2))
+    cy = cy - 32
+
+ESG.removeTile(TileGrass(Point(cx, cy + 64)))
+ESG.addTile(TileGrass(Point(cx, cy + 64)))
+
 def onGUI(graphics):
     ESG.getImage("healthbar").draw(10, 10)
     i = 19

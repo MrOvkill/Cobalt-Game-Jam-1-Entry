@@ -2,6 +2,13 @@ package com.epicknife.cobaltgamejam1;
 
 import org.lwjgl.input.Keyboard;
 
+/*
+    * Author: Samuel "MrOverkill" Meyers
+    * License: Public Domain
+    * Version: 0.0.1
+    * Last Modified: 0.0.1 - Samuel "MrOverkill" Meyers
+*/
+
 public class KeyPresser
 {
     boolean down;
