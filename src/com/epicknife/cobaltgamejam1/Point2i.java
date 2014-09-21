@@ -43,9 +43,9 @@ public class Point2i
     
     public static int distance(Point2i a, Point2i b)
     {
-        int ad = Math.abs(a.x) - Math.abs(b.x);
-        int bd = Math.abs(a.y) - Math.abs(b.y);
-        return ad+bd;
+        int ad = a.x + b.x;
+        int bd = a.y + b.y;
+        return Math.abs(ad+bd);
     }
     
     public boolean inRange(int range, Point2i dest)

@@ -12,6 +12,7 @@ import org.newdawn.slick.GameContainer;
 import org.newdawn.slick.Graphics;
 import org.newdawn.slick.Image;
 import org.newdawn.slick.SlickException;
+import org.python.core.Py;
 import org.python.util.PythonInterpreter;
 
 public class EvilSheepGame extends BasicGame
@@ -165,7 +166,7 @@ public class EvilSheepGame extends BasicGame
         // Different scenes could need different UI
         if(interpreter.get("onGUI") != null)
         {
-            interpreter.get("onGUI").__call__();
+            interpreter.get("onGUI").__call__(Py.java2py(g));
         }
     }
     
