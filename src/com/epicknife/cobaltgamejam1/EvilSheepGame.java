@@ -5,6 +5,7 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Random;
 import org.newdawn.slick.AppGameContainer;
 import org.newdawn.slick.BasicGame;
 import org.newdawn.slick.GameContainer;
@@ -25,6 +26,8 @@ public class EvilSheepGame extends BasicGame
     // There are allowed to occupy the same space.
     public static ArrayList<AI> entities;
     public static Controllable player;
+    public static NavMesh navmesh;
+    public static Random rand;
     
     public static void main(String[] args) throws Exception
     {
@@ -32,18 +35,27 @@ public class EvilSheepGame extends BasicGame
         EvilSheepGame.images = new HashMap<>();
         EvilSheepGame.world = new ArrayList<>();
         EvilSheepGame.entities = new ArrayList<>();
+        EvilSheepGame.navmesh = new NavMesh();
         AppGameContainer container = new AppGameContainer(esg);
         container.setDisplayMode(800, 600, false);
         container.start();
     }
     
-    // This is a very expensive function for large maps.
+    public static int randInt(int min, int max)
+    {
+        if(rand == null)
+        {
+            rand = new Random();
+        }
+        return rand.nextInt((max - min) + 1) + min;
+    }
+    
     public static void addTile(Tile tile)
     {
         world.add(tile);
-        for(int i = 0; i < entities.size(); i++)
+        if(!navmesh.addRegion(tile.getCollisionSquare()))
         {
-            entities.get(i).onTerrainChange();
+            System.out.println("Failed to add collider for: " + tile.getCollisionSquare().toString());
         }
     }
     
@@ -134,12 +146,18 @@ public class EvilSheepGame extends BasicGame
         
         for(int i = 0; i < world.size(); i++)
         {
-            world.get(i).onDraw(player.pos);
+            world.get(i).onDraw(new Point2i(player.pos.x + 400, player.pos.y + 300));
         }
         
         for(int i = 0; i < entities.size(); i++)
         {
-            entities.get(i).onDraw(player.pos);
+            entities.get(i).onDraw(new Point2i(player.pos.x + 400, player.pos.y + 300));
+            // FACEPALM
+            if(entities.get(i).destroy)
+            {
+                entities.remove(i);
+                i--;
+            }
         }
         
         player.onDraw();

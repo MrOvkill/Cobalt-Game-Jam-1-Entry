@@ -4,28 +4,12 @@ import org.lwjgl.input.Keyboard;
 
 public class Controllable
 {
-    private class heal implements Runnable
-    {
-        @Override
-        public void run()
-        {
-            EvilSheepGame.player.onDamage(-1);
-        }
-    }
-    private class damage implements Runnable
-    {
-        @Override
-        public void run()
-        {
-            EvilSheepGame.player.onDamage(1);
-        }
-    }
     public Point2i pos;
     public int speed;
     // To allow really small and fine-tined amounts of damage.
     public float health;
     long ds, dn;
-    private final KeyPresser up, down;
+    boolean a;
     
     public Controllable(Point2i pos, int speed)
     {
@@ -33,8 +17,7 @@ public class Controllable
         this.speed = speed;
         this.health = 20;
         ds = System.currentTimeMillis();
-        up = new KeyPresser(Keyboard.KEY_UP, new heal());
-        down = new KeyPresser(Keyboard.KEY_DOWN, new damage());
+        a = false;
     }
     
     public void onDamage(float amt)
@@ -45,9 +28,6 @@ public class Controllable
     public void onUpdate()
     {
         dn = System.currentTimeMillis();
-        
-        up.update();
-        down.update();
         
         if(dn-ds >= 10)
         {
@@ -68,6 +48,7 @@ public class Controllable
             {
                 this.pos.x -= speed;
             }
+            
             ds = dn;
         }
     }

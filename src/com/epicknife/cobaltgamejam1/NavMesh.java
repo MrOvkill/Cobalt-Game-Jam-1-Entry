@@ -50,11 +50,11 @@ public class NavMesh
         {
             Square s = regions.get(i);
             
-            if(a.x <= s.x1 && a.x >= s.x2 && a.y <= s.y1 && a.y >= s.y2)
+            if(a.x >= s.x1 && a.x <= s.x2 && a.y >= s.y1 && a.y <= s.y2)
             {
                 at = true;
             }
-            if(b.x <= s.x1 && b.x >= s.x2 && b.y <= s.y1 && b.y >= s.y2)
+            if(b.x >= s.x1 && b.x <= s.x2 && b.y >= s.y1 && b.y <= s.y2)
             {
                 bt = true;
             }
@@ -62,11 +62,6 @@ public class NavMesh
             if (at && bt)
             {
                 return true;
-            }
-            else
-            {
-                at = false;
-                bt = false;
             }
         }
         
