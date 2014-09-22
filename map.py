@@ -322,7 +322,6 @@ ESG.setImage("shit", "resources/images/shit.png")
 ESG.setImage("bigshit", "resources/images/bigshit.png")
 ESG.setImage("evilsheep", "resources/images/angrysheep.png")
 ESG.setImage("corpse", "resources/images/corpse.png")
-ESG.setImage("debug_white", "resources/images/debug_white.png")
 ESG.setImage("verticalfence", "resources/images/verticalfence.png")
 ESG.setImage("horizontalfence", "resources/images/horizontalfence.png")
 
